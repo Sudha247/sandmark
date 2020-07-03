@@ -7,4 +7,5 @@ runs_dune.inc
 *.swp
 *_macro.json
 *_parallel.json
+*_custom.json
 .ipynb_checkpoints
