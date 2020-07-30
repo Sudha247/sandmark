@@ -21,6 +21,9 @@ RUN_CONFIG_JSON ?= run_config.json
 #  orun
 RUN_BENCH_TARGET ?= run_orun
 
+# Dry run test without executing benchmarks
+BUILD_ONLY ?= 0
+
 # number of benchmark iterations to run
 ITER ?= 1
 
@@ -34,9 +37,10 @@ CONTINUE_ON_OPAM_INSTALL_ERROR ?= true
 WRAPPER = $(subst run_,,$(RUN_BENCH_TARGET))
 
 PACKAGES = \
-	cpdf menhir minilight camlimages yojson lwt alt-ergo zarith \
-	js_of_ocaml-compiler uuidm react ocplib-endian nbcodec checkseum decompress \
-	sexplib0 irmin-mem cubicle
+       cpdf conf-pkg-config conf-zlib bigstringaf decompress camlzip menhirLib menhir \
+       minilight base stdio dune-private-libs dune-configurator camlimages yojson lwt \
+       alt-ergo zarith integers js_of_ocaml-compiler uuidm react ocplib-endian        \
+       nbcodec checkseum sexplib0 irmin-mem cubicle conf-findutils coq fraplib
 
 DEPENDENCIES = libgmp-dev libdw-dev jq python3-pip # Ubuntu
 PIP_DEPENDENCIES = intervaltree
@@ -72,7 +76,7 @@ else
 	ln -s $(SYS_DUNE_BASE_DIR)/lib/dune $(CURDIR)/_opam/sys_dune/lib/dune
 endif
 
-ocamls=$(wildcard ocaml-versions/*.comp)
+ocamls=$(wildcard ocaml-versions/*.json)
 
 # to build in a Dockerfile you need to disable sandboxing in opam
 ifeq ($(OPAM_DISABLE_SANDBOXING), true)
@@ -81,7 +85,7 @@ endif
 _opam/opam-init/init.sh:
 	opam init --bare --no-setup --no-opamrc $(OPAM_INIT_EXTRA_FLAGS) ./dependencies
 
-_opam/%: _opam/opam-init/init.sh ocaml-versions/%.comp setup_sys_dune
+_opam/%: _opam/opam-init/init.sh ocaml-versions/%.json setup_sys_dune
 	rm -rf dependencies/packages/ocaml/ocaml.$*
 	rm -rf dependencies/packages/ocaml-base-compiler/ocaml-base-compiler.$*
 	mkdir -p dependencies/packages/ocaml/ocaml.$*
@@ -89,10 +93,12 @@ _opam/%: _opam/opam-init/init.sh ocaml-versions/%.comp setup_sys_dune
 	mkdir -p dependencies/packages/ocaml-base-compiler/ocaml-base-compiler.$*
 	cp -R dependencies/template/ocaml-base-compiler/* \
 	  dependencies/packages/ocaml-base-compiler/ocaml-base-compiler.$*/
-	{ url="$$(cat ocaml-versions/$*.comp)"; echo "url { src: \"$$url\" }"; echo "setenv: [ [ ORUN_CONFIG_ocaml_url = \"$$url\" ] ]"; } \
+	{ url="$$(jq -r '.url // empty' ocaml-versions/$*.json)"; echo "url { src: \"$$url\" }"; echo "setenv: [ [ ORUN_CONFIG_ocaml_url = \"$$url\" ] ]"; } \
 	  >> dependencies/packages/ocaml-base-compiler/ocaml-base-compiler.$*/opam
+	$(eval OCAML_CONFIG_OPTION = $(shell jq -r '.configure // empty' ocaml-versions/$*.json))
+	$(eval OCAML_RUN_PARAM     = $(shell jq -r '.runparams // empty' ocaml-versions/$*.json))
 	opam update
-	opam switch create --keep-build-dir --yes $* ocaml-base-compiler.$*
+	OCAMLRUNPARAM="$(OCAML_RUN_PARAM)" OCAMLCONFIGOPTION="$(OCAML_CONFIG_OPTION)" opam switch create --keep-build-dir --yes $* ocaml-base-compiler.$*
 	opam pin add -n --yes --switch $* orun orun/
 	opam pin add -n --yes --switch $* rungen rungen/
 
@@ -108,7 +114,7 @@ log_sandmark_hash:
 blah:
 	@echo ${PACKAGES}
 
-ocaml-versions/%.bench: depend log_sandmark_hash ocaml-versions/%.comp _opam/% .FORCE
+ocaml-versions/%.bench: depend log_sandmark_hash ocaml-versions/%.json _opam/% .FORCE
 	@opam update
 	opam install --switch=$* --keep-build-dir --yes rungen orun
 	opam install --switch=$* --best-effort --keep-build-dir --yes $(PACKAGES) || $(CONTINUE_ON_OPAM_INSTALL_ERROR)
@@ -119,21 +125,25 @@ ocaml-versions/%.bench: depend log_sandmark_hash ocaml-versions/%.comp _opam/% .
 	opam exec --switch $* -- cp pausetimes/* $$(opam config var bin)
 	opam exec --switch $* -- rungen _build/$*_1 $(RUN_CONFIG_JSON) > runs_dune.inc;
 	opam exec --switch $* -- dune build --profile=release --workspace=ocaml-versions/.workspace.$* @$(BUILD_BENCH_TARGET);
-	@{ IS_PARALLEL=`grep -c chrt $(RUN_CONFIG_JSON)`; 									\
-	   if [ "$$IS_PARALLEL" -gt 0 ]; then											\
-	     $(PRE_BENCH_EXEC) sudo -s OPAMROOT="${OPAMROOT}" OPAMROOTISOK="true" BUILD_BENCH_TARGET="${BUILD_BENCH_TARGET}" 	\
-               RUN_BENCH_TARGET="${RUN_BENCH_TARGET}" RUN_CONFIG_JSON="${RUN_CONFIG_JSON}" opam exec --switch $* -- 		\
-	       dune build -j 1 --profile=release --workspace=ocaml-versions/.workspace.$* @$(RUN_BENCH_TARGET); ex=$$?; 	\
-	   else															\
-	     $(PRE_BENCH_EXEC) opam exec --switch $* -- dune build -j 1 --profile=release 					\
-	       --workspace=ocaml-versions/.workspace.$* @$(RUN_BENCH_TARGET); ex=$$?;						\
+	@{ if [ "$(BUILD_ONLY)" -eq 0 ]; then												\
+		IS_PARALLEL=`grep -c chrt $(RUN_CONFIG_JSON)`; 										\
+		if [ "$$IS_PARALLEL" -gt 0 ]; then											\
+		  $(PRE_BENCH_EXEC) sudo -s OPAMROOT="${OPAMROOT}" OPAMROOTISOK="true" BUILD_BENCH_TARGET="${BUILD_BENCH_TARGET}" 	\
+	            RUN_BENCH_TARGET="${RUN_BENCH_TARGET}" RUN_CONFIG_JSON="${RUN_CONFIG_JSON}" opam exec --switch $* -- 		\
+		    dune build -j 1 --profile=release --workspace=ocaml-versions/.workspace.$* @$(RUN_BENCH_TARGET); ex=$$?; 		\
+		else															\
+		  $(PRE_BENCH_EXEC) opam exec --switch $* -- dune build -j 1 --profile=release 						\
+		    --workspace=ocaml-versions/.workspace.$* @$(RUN_BENCH_TARGET); ex=$$?;						\
+		fi;															\
+		for f in `find _build/$*_* -name '*.bench'`; do 									\
+		   d=`basename $$f | cut -d '.' -f 1,2`; 										\
+		   mkdir -p _results/$*/$$d/ ; cp $$f _results/$*/$$d/; 								\
+		done;															\
+	        find _build/$*_* -name '*.$(WRAPPER).bench' | xargs cat > _results/$*/$*.$(WRAPPER).bench;				\
+		exit $$ex; 														\
+	   else 															\
+		exit 0; 														\
 	   fi };
-	@{ for f in `find _build/$*_* -name '*.bench'`; do \
-	   d=`basename $$f | cut -d '.' -f 1,2`; \
-	   mkdir -p _results/$*/$$d/ ; cp $$f _results/$*/$$d/; \
-	done };
-	@{ find _build/$*_* -name '*.$(WRAPPER).bench' | xargs cat > _results/$*/$*.$(WRAPPER).bench; };
-	exit $$ex;
 
 define check_dependency
 	$(if $(filter $(shell $(2) | grep $(1) | wc -l), 0),
@@ -141,8 +151,8 @@ define check_dependency
 endef
 
 depend:
-	$(foreach d, $(DEPENDENCIES),     $(call check_dependency, $(d), dpkg -l,   Install on Ubuntu using apt.))
-	$(foreach d, $(PIP_DEPENDENCIES), $(call check_dependency, $(d), pip3 list --format=columns, Install using pip3 install.))
+	$(foreach d, $(DEPENDENCIES),      $(call check_dependency, $(d), dpkg -l,   Install on Ubuntu using apt.))
+	$(foreach d, $(PIP_DEPENDENCIES),  $(call check_dependency, $(d), pip3 list --format=columns, Install using pip3 install.))
 
 clean:
 	rm -rf dependencies/packages/ocaml/*
@@ -152,6 +162,8 @@ clean:
 	rm -rf _build
 	rm -rf _opam
 	rm -rf _results
+	rm -rf *_macro*.json *ci.json
+	rm -rf *~
 
 list:
 	@echo $(ocamls)
@@ -167,7 +179,10 @@ bash:
 
 %_custom.json: %.json
 	if [ -z "$$PARAMWRAPPER" ]; then PARAMWRAPPER="if params < 16 then paramwrapper = 2-13 else paramwrapper = 2-13,16-27"; else echo "user configured paramwrapper"; fi; \
-	jq --arg PARAMWRAPPER "$${PARAMWRAPPER}" '{wrappers : .wrappers, benchmarks: [.benchmarks | .[] | select(.ismacrobench == true)]} | {wrappers: .wrappers, benchmarks: [.benchmarks | .[] | {executable: .executable, name: .name, ismacrobench: .ismacrobench, runs: [.runs | .[] as $$x | $$x | .params | split(" ") | first as $$n | $$n | length | if . < 3 then try ($$n | tonumber | if . < ($$PARAMWRAPPER | split(" ") | .[3] | tonumber) then $$x | .paramwrapper |= ($$PARAMWRAPPER | split(" ") | "taskset --cpu-list " + .[7] + " chrt -r 1") else $$x | .paramwrapper |= ($$PARAMWRAPPER | split(" ") | "taskset --cpu-list " + .[11] + " chrt -r 1") end) else $$x | .paramwrapper |= ($$PARAMWRAPPER | split(" ") | "taskset --cpu-list " + .[7] + " chrt -r 1") end] } ] }' < $< > $@
+	jq --arg PARAMWRAPPER "$${PARAMWRAPPER}" '{wrappers : .wrappers, benchmarks: [.benchmarks | .[] | select(.tags | index("macro_bench") != null)]} | {wrappers: .wrappers, benchmarks: [.benchmarks | .[] | {executable: .executable, name: .name, tags: .tags, runs: [.runs | .[] as $$x | $$x | .params | split(" ") | first as $$n | $$n | length | if . < 3 then try ($$n | tonumber | if . < ($$PARAMWRAPPER | split(" ") | .[3] | tonumber) then $$x | .paramwrapper |= ($$PARAMWRAPPER | split(" ") | "taskset --cpu-list " + .[7] + " chrt -r 1") else $$x | .paramwrapper |= ($$PARAMWRAPPER | split(" ") | "taskset --cpu-list " + .[11] + " chrt -r 1") end) else $$x | .paramwrapper |= ($$PARAMWRAPPER | split(" ") | "taskset --cpu-list " + .[7] + " chrt -r 1") end] } ] }' < $< > $@
 
-%_macro_parallel.json: %_macro.json
-	jq '{wrappers : .wrappers, benchmarks: [.benchmarks | .[] | select(.ismacrobench == true)]} | {wrappers : .wrappers, benchmarks : [.benchmarks | .[] | select(.ismacrobench == true) | {executable : .executable, name: .name, ismacrobench: .ismacrobench, runs : [.runs | .[] as $$item | if ($$item | .params | split(" ") | .[0] ) == "2" then $$item | .paramwrapper |= "" else empty end ] } ]}' < $< > $@
+%_macro_2domains.json: %_macro.json
+	jq '{wrappers : .wrappers, benchmarks: [.benchmarks | .[] | select(.tags | index("macro_bench") != null)]} | {wrappers : .wrappers, benchmarks : [.benchmarks | .[] | select(.tags | index("macro_bench") != null) | {executable : .executable, name: .name, tags: .tags, runs : [.runs | .[] as $$item | if ($$item | .params | split(" ") | .[0] ) == "2" then $$item | .paramwrapper |= "" else empty end ] } ]}' < $< > $@
+
+%_ci.json: %.json
+	jq '{wrappers : .wrappers, benchmarks: [.benchmarks | .[] | select(.tags | index("run_in_ci") != null)]}' < $< > $@

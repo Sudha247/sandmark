@@ -19,59 +19,59 @@
     {
       "executable": "benchmarks/multicore-minilight/sequential/minilight.exe",
       "name": "minilight",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         {
           "params": "roomfront.ml.txt",
           "short_name": "roomfront",
-					"paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"
+          "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"
         }
       ]
     },
     {
       "executable": "benchmarks/multicore-minilight/parallel/minilight_multicore.exe",
       "name": "minilight_multicore",
-      "ismacrobench": true,
+      "tags": ["macro_bench", "run_in_ci"],
       "runs": [
         {
           "params": "1 roomfront.ml.txt",
           "short_name": "1_roomfront",
-					"paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"
+          "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"
         },
         {
           "params": "2 roomfront.ml.txt",
           "short_name": "2_roomfront",
-					"paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"
+          "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"
         },
         {
           "params": "4 roomfront.ml.txt",
           "short_name": "4_roomfront",
-					"paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"
+          "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"
         },
         {
           "params": "8 roomfront.ml.txt",
           "short_name": "8_roomfront",
-					"paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"
+          "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"
         },
         {
           "params": "12 roomfront.ml.txt",
           "short_name": "12_roomfront",
-					"paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"
+          "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"
         },
         {
           "params": "16 roomfront.ml.txt",
           "short_name": "16_roomfront",
-					"paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1"
+          "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1"
         },
         {
           "params": "20 roomfront.ml.txt",
           "short_name": "20_roomfront",
-					"paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1"
+          "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1"
         },
         {
           "params": "24 roomfront.ml.txt",
           "short_name": "24_roomfront",
-					"paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1"
+          "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1"
         }
       ]
     },
@@ -79,7 +79,7 @@
     {
       "executable": "benchmarks/benchmarksgame/spectralnorm2.exe",
       "name": "spectralnorm2",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "5_500" , "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"}
       ]
@@ -87,7 +87,7 @@
     {
       "executable": "benchmarks/multicore-numerical/spectralnorm2_multicore.exe",
       "name": "spectralnorm2_multicore",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "1 5_500", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
         { "params": "2 5_500", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
@@ -103,7 +103,7 @@
     {
       "executable": "benchmarks/benchmarksgame/mandelbrot6.exe",
       "name": "mandelbrot6",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "16_000", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" }
       ]
@@ -111,7 +111,7 @@
     {
       "executable": "benchmarks/multicore-numerical/mandelbrot6_multicore.exe",
       "name": "mandelbrot6_multicore",
-      "ismacrobench": true,
+      "tags": ["macro_bench", "run_in_ci"],
       "runs": [
         { "params": "1 16_000", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
         { "params": "2 16_000", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
@@ -127,7 +127,7 @@
     {
       "executable": "benchmarks/multicore-numerical/matrix_multiplication.exe",
       "name": "matrix_multiplication",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" }
       ]
@@ -135,7 +135,7 @@
     {
       "executable": "benchmarks/multicore-numerical/matrix_multiplication_multicore.exe",
       "name": "matrix_multiplication_multicore",
-      "ismacrobench": true,
+      "tags": ["macro_bench", "run_in_ci"],
       "runs": [
         { "params": "1 1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
         { "params": "2 1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
@@ -150,7 +150,7 @@
     {
       "executable": "benchmarks/multicore-numerical/matrix_multiplication_tiling_multicore.exe",
       "name": "matrix_multiplication_tiling_multicore",
-      "ismacrobench": false,
+      "tags": [],
       "runs": [
         { "params": "1 1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
         { "params": "2 1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
@@ -163,7 +163,7 @@
     {
       "executable": "benchmarks/multicore-numerical/quicksort.exe",
       "name": "quicksort",
-      "ismacrobench": false,
+      "tags": [],
       "runs": [
         { "params": "40_000_000", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" }
       ]
@@ -171,7 +171,7 @@
     {
       "executable": "benchmarks/multicore-numerical/quicksort_multicore.exe",
       "name": "quicksort_multicore",
-      "ismacrobench": false,
+      "tags": [],
       "runs": [
         { "params": "1 40_000_000", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
         { "params": "2 40_000_000", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
@@ -187,7 +187,7 @@
     {
       "executable": "benchmarks/benchmarksgame/binarytrees5.exe",
       "name": "binarytrees5",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "23", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" }
       ]
@@ -195,7 +195,7 @@
     {
       "executable": "benchmarks/multicore-numerical/binarytrees5_multicore.exe",
       "name": "binarytrees5_multicore",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "1 23", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
         { "params": "2 23", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
@@ -211,7 +211,7 @@
     {
       "executable": "benchmarks/multicore-numerical/game_of_life.exe",
       "name": "game_of_life",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "256", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" }
       ]
@@ -219,7 +219,7 @@
     {
       "executable": "benchmarks/multicore-numerical/game_of_life_multicore.exe",
       "name": "game_of_life_multicore",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "1 256", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
         { "params": "2 256", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
@@ -231,56 +231,56 @@
         { "params": "24 256", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" }
       ]
     },
-		{
+    {
       "executable": "benchmarks/multicore-numerical/LU_decomposition.exe",
       "name": "LU_decomposition",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "2048", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" }
       ]
     },
-		{
-			"executable": "benchmarks/multicore-numerical/LU_decomposition_multicore.exe",
-			"name": "LU_decomposition_multicore",
-			"ismacrobench": true,
-			"runs": [
-				{ "params": "1 2048", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
-				{ "params": "2 2048", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
-				{ "params": "4 2048", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
-				{ "params": "8 2048", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
-				{ "params": "12 2048", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
-				{ "params": "16 2048", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" },
-				{ "params": "20 2048", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" },
-				{ "params": "24 2048", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" }
-			]
-		},
-		{
+    {
+      "executable": "benchmarks/multicore-numerical/LU_decomposition_multicore.exe",
+      "name": "LU_decomposition_multicore",
+      "tags": ["macro_bench"],
+      "runs": [
+        { "params": "1 2048", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
+        { "params": "2 2048", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
+        { "params": "4 2048", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
+        { "params": "8 2048", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
+        { "params": "12 2048", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
+        { "params": "16 2048", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" },
+        { "params": "20 2048", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" },
+        { "params": "24 2048", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" }
+      ]
+    },
+    {
       "executable": "benchmarks/multicore-numerical/floyd_warshall.exe",
       "name": "floyd_warshall",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" }
       ]
     },
-		{
-			"executable": "benchmarks/multicore-numerical/floyd_warshall_multicore.exe",
-			"name": "floyd_warshall_multicore",
-			"ismacrobench": true,
-			"runs": [
-				{ "params": "1 1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
-				{ "params": "2 1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
-				{ "params": "4 1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
-				{ "params": "8 1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
-				{ "params": "12 1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
-				{ "params": "16 1024", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" },
-				{ "params": "20 1024", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" },
-				{ "params": "24 1024", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" }
-			]
-		},
+    {
+      "executable": "benchmarks/multicore-numerical/floyd_warshall_multicore.exe",
+      "name": "floyd_warshall_multicore",
+      "tags": ["macro_bench"],
+      "runs": [
+        { "params": "1 1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
+        { "params": "2 1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
+        { "params": "4 1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
+        { "params": "8 1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
+        { "params": "12 1024", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
+        { "params": "16 1024", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" },
+        { "params": "20 1024", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" },
+        { "params": "24 1024", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" }
+      ]
+    },
     {
       "executable": "benchmarks/multicore-numerical/nbody.exe",
       "name": "nbody",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "512 2048", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" }
       ]
@@ -288,7 +288,7 @@
     {
       "executable": "benchmarks/multicore-numerical/nbody_multicore.exe",
       "name": "nbody_multicore",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "1 512 2048", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
         { "params": "2 512 2048", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
@@ -300,11 +300,26 @@
         { "params": "24 512 2048", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" }
       ]
     },
+    {
+      "executable": "benchmarks/multicore-numerical/evolutionary_algorithm_multicore.exe",
+      "name": "evolutionary_algorithm_multicore",
+      "tags": ["macro_bench", "run_in_ci"],
+      "runs": [
+        { "params": "1 10000 10000", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
+        { "params": "2 10000 10000", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
+        { "params": "4 10000 10000", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
+        { "params": "8 10000 10000", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
+        { "params": "12 10000 10000", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
+        { "params": "16 10000 10000", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" },
+        { "params": "20 10000 10000", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" },
+        { "params": "24 10000 10000", "paramwrapper": "taskset --cpu-list 2-13,16-27 chrt -r 1" }
+      ]
+    },
 
     {
       "executable": "benchmarks/decompress/test_decompress.exe",
       "name": "test_decompress",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "64 1_048_576", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" }
       ]
@@ -312,7 +327,7 @@
     {
       "executable": "benchmarks/decompress/test_decompress_multicore.exe",
       "name": "test_decompress_multicore",
-      "ismacrobench": true,
+      "tags": ["macro_bench", "run_in_ci"],
       "runs": [
         { "params": "1 64 1_048_576", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
         { "params": "2 64 1_048_576", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
@@ -327,7 +342,7 @@
     {
       "executable": "benchmarks/multicore-grammatrix/grammatrix.exe",
       "name": "grammatrix",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" }
       ]
@@ -335,7 +350,7 @@
     {
       "executable": "benchmarks/multicore-grammatrix/grammatrix_multicore.exe",
       "name": "grammatrix_multicore",
-      "ismacrobench": true,
+      "tags": ["macro_bench"],
       "runs": [
         { "params": "1 16", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
         { "params": "2 16", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
@@ -350,7 +365,7 @@
     {
       "executable": "benchmarks/simple-tests/pingpong_multicore.exe",
       "name": "pingpong_multicore",
-      "ismacrobench": false,
+      "tags": [],
       "runs": [
         { "params": "2 256 1000000", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1"},
         { "params": "4 256 1000000", "paramwrapper": "taskset --cpu-list 2-13 chrt -r 1" },
@@ -365,7 +380,7 @@
     {
       "executable": "benchmarks/multicore-structures/test_queue_parallel.exe",
       "name": "mpmc_queue_parallel",
-      "ismacrobench": false,
+      "tags": [],
       "runs": [
         {
           "params": "10000000"
@@ -375,7 +390,7 @@
     {
       "executable": "benchmarks/multicore-structures/test_spsc_queue_parallel.exe",
       "name": "spsc_queue_parallel",
-      "ismacrobench": false,
+      "tags": [],
       "runs": [
         {
           "params": "10000000"
@@ -385,7 +400,7 @@
     {
       "executable": "benchmarks/multicore-structures/test_spsc_queue_pingpong_parallel.exe",
       "name": "spsc_queue_pingpong_parallel",
-      "ismacrobench": false,
+      "tags": [],
       "runs": [
         {
           "params": "1 10000000"
@@ -401,7 +416,7 @@
     {
       "executable": "benchmarks/multicore-lockfree/test_wsqueue.exe",
       "name": "lockfree-wsqueue",
-      "ismacrobench": false,
+      "tags": [],
       "runs": [
         {
           "params": "1 100000"
@@ -417,7 +432,7 @@
     {
       "executable": "benchmarks/multicore-lockfree/test_hash.exe",
       "name": "lockfree-hash",
-      "ismacrobench": false,
+      "tags": [],
       "runs": [
         {
           "params": "1 80 1000000"
@@ -433,7 +448,7 @@
     {
       "executable": "benchmarks/simple-tests/alloc_multicore.exe",
       "name": "alloc_multicore",
-      "ismacrobench": false,
+      "tags": [],
       "runs": [
         {
           "params": "1 1000000"
@@ -455,7 +470,7 @@
     {
       "executable": "benchmarks/multicore-structures/test_stack_parallel.exe",
       "name": "stack_parallel",
-      "ismacrobench": false,
+      "tags": [],
       "runs": [
         {
           "params": "100000"

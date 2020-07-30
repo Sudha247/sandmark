@@ -1,3 +1,5 @@
+[![Build Status](http://cloud.drone.io/api/badges/ocaml-bench/sandmark/status.svg?branch=master)](http://cloud.drone.io/ocaml-bench/sandmark)
+
 # Sandmark
 
 A benchmarking suite for OCaml.
@@ -14,18 +16,17 @@ $ pip3 install jupyter seaborn pandas intervaltree
 $ sh <(curl -sL https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh)
 $ opam init
 
-$ opam install dune.1.11.4
+$ opam install dune.2.6.0
 
-$ make ocaml-versions/4.06.0.bench
+$ git clone https://github.com/ocaml-bench/sandmark.git
+$ cd sandmark
+$ make ocaml-versions/4.10.0+stock.bench
+$ make ocaml-versions/4.10.0+multicore.bench
 ```
 
 You can now find the results in the `_results/` folder.
 
 ## Pre-requisites
-
-It is necessary that the system dune version is `< 2.0`. The
-development uses `ocaml-base-compiler.4.09.0` with `dune.1.11.4` and
-`jbuilder.transition`.
 
 On GNU/Linux you need to have `libgmp-dev` installed for several of
 the benchmarks to work. You also need to have `libdw-dev` installed
@@ -45,7 +46,7 @@ These stages are implemented in:
 
  - Opam setup: the `Makefile` handles the creation of an opam switch
    that builds a custom compiler as specified in the
-   `ocaml-versions/<version>.comp` file.  It then installs all the
+   `ocaml-versions/<version>.var` file.  It then installs all the
    required packages; these packages are statically defined by their
    opam files in the `dependencies` directory.
 
@@ -61,6 +62,31 @@ These stages are implemented in:
    the runplan using the benchmark wrapper defined in
    `run_config.json` and specified via the `RUN_BENCH_TARGET` variable
    passed to the makefile.
+
+## Configuration
+
+The compiler variant and its configuration options can be specified in
+a .json file in the ocaml-versions/ directory. It uses the JSON syntax
+as shown in the following example:
+
+```
+{
+  "url" : "https://github.com/ocaml-multicore/ocaml-multicore/archive/parallel_minor_gc.tar.gz",
+  "configure" : "-q",
+  "runparams" : "v=0x400"
+}
+```
+
+The various options are described below:
+
+- `url` is MANDATORY and provides the web URL to download the source
+  for the ocaml-base-compiler.
+
+- `configure` is OPTIONAL, and you can use this setting to pass
+  specific flags to the `configure` script.
+
+- `runparams` is OPTIONAL, and its values are passed to OCAMLRUNPARAM
+  when building the compiler.
 
 ## Execution
 
@@ -104,26 +130,77 @@ command:
 username   ALL=(ALL:ALL) NOPASSWD: ALL
 ```
 
-### Configuration
+### Running benchmarks
 
-The benchmarks which are executed are specified in
-`run_config.json`. This file specifies the executable to run and the
-wrapper which will be used to collect data (e.g. orun or perf). You
-can edit this file to change benchmark parameters or setup a custom
-set of benchmarks that you care about.
+We can obtain throughput and latency results for the benchmarks.
+
+A config file can be specified with the environment variable `RUN_CONFIG_JSON`,
+and the default value is `run_config.json`. This file lists the executable to
+run and the wrapper which will be used to collect data (e.g. orun or perf). You
+can edit this file to change benchmark parameters or wrappers.
+
+The build bench target determines the type of benchmark being built. It can be
+specified with the environment variable `BUILD_BENCH_TARGET`, and the default
+value is `buildbench` which runs the serial benchmarks. For executing the
+parallel benchmarks use `multibench_parallel`. You can also setup a custom
+bench and add only the benchmarks you care about.
+
+For obtaining latency results, we can adjust the environment variable
+`RUN_BENCH_TARGET`. The scripts for latencies are present in the `pausetimes/`
+directory. The `pausetimes_trunk` Bash script obtains the latencies for stock
+OCaml and the `pausetimes_multicore` Bash script for Multicore OCaml.
+
+### Results
+
+After a run is complete, the results will be available in the `_results`
+directory.
+
+Jupyter notebooks are available in the `notebooks` directory to parse and
+visualise the results, for both serial and parallel benchmarks. To run the
+Jupyter notebooks for your results, copy your results to `notebooks/
+sequential` folder for sequential benchmarks and `notebooks/parallel` folder
+for parallel benchmarks. It is sufficient to copy only the consolidated
+bench files, which are present as
+`_results/<comp-version>/<comp-version>.bench`. You can run the notebooks
+with
+
+```
+$ jupyter notebook
+```
 
 ### Adding benchmarks
 
-You can add benchmarks as follows:
+You can add new benchmarks as follows:
 
- - Add any opam packages you need, by adding the opam files to
-   `repository/` and the package install to `PACKAGES` in the
-   `Makefile`
+ - **Add dependencies to packages:**
+    If there are any package dependencies your benchmark has that are not
+    already included in Sandmark, add its opam file to
+    `dependencies/packages/<package-name>/<package-version>/opam`. If the
+    package depends on other packages, repeat this step for all of those
+    packages. Add the package to `PACKAGES` variable in the Makefile.  
 
- - Add any OCaml code to the `benchmarks/` directory, it is assumed
-   dune will build it.
+ - **Add benchmark files:**
+    Find a relevant folder in `benchmarks/` and add your code to it. Feel free
+    to create a new folder if you don't find any existing ones relevant. Every
+    folder in `benchmarks/` has its own dune file; if you are creating a new
+    directory for your benchmark, also create a dune file in that directory and
+    add a stanza for your benchmark. If you are adding your benchmark to an
+    existing directory, add a dune stanza for your benchmark in the directory's
+    dune file.
 
- - Add your benchmark command line to `run_config.json`
+    Also add you code and input files if any to an alias,
+    `buildbench` for sequential benchmarks and `multibench_parallel` for
+    parallel benchmarks. For instance, if you are adding a parallel benchmark
+    `benchmark.ml` and its input file `input.txt` to a directory, in that
+    directory's dune file add
+    ```
+    (alias (name multibench_parallel) (deps benchmark.ml input.txt))
+    ```
+
+ - **Add commands to run your applications:**
+    Add an entry for your benchmark run to the appropriate config file;
+    `run_config.json` for sequential benchmarks and
+    `multicore_parallel_run_config.json` for parallel benchmarks.
 
 ## UI
 
