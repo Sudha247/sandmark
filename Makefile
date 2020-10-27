@@ -178,3 +178,6 @@ bash:
 
 %_ci.json: %.json
 	jq '{wrappers : .wrappers, benchmarks: [.benchmarks | .[] | select(.tags | index("run_in_ci") != null)]}' < $< > $@
+
+%_overflow.json: %.json
+	jq '{wrappers : .wrappers, benchmarks: [.benchmarks | .[] | select(.tags | index("overflow") != null)]}' < $< > $@
