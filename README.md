@@ -2,14 +2,15 @@
 
 # Sandmark
 
-A benchmarking suite for OCaml.
+A benchmark suite for OCaml.
 
 ## Quick Start
 
 On Ubuntu 18.04.4 LTS you can try the following commands:
 
 ```bash
-$ sudo apt-get install curl git libgmp-dev libdw-dev python3-pip jq bubblewrap m4 unzip
+$ sudo apt-get install curl git libgmp-dev libdw-dev python3-pip jq bubblewrap \
+	pkg-config m4 unzip
 $ pip3 install jupyter seaborn pandas intervaltree
 
 # Install OPAM if not available already
@@ -20,8 +21,9 @@ $ opam install dune.2.6.0
 
 $ git clone https://github.com/ocaml-bench/sandmark.git
 $ cd sandmark
-$ make ocaml-versions/4.10.0+stock.bench
-$ make ocaml-versions/4.10.0+multicore.bench
+$ make ocaml-versions/4.12.0+stock.bench
+$ make ocaml-versions/4.12.0+domains.bench
+$ make ocaml-versions/4.12.0+domains+effects.bench
 ```
 
 You can now find the results in the `_results/` folder.
@@ -63,13 +65,13 @@ These stages are implemented in:
    `run_config.json` and specified via the `RUN_BENCH_TARGET` variable
    passed to the makefile.
 
-## Configuration
+## Configuration of the compiler build
 
 The compiler variant and its configuration options can be specified in
 a .json file in the ocaml-versions/ directory. It uses the JSON syntax
 as shown in the following example:
 
-```
+```json
 {
   "url" : "https://github.com/ocaml-multicore/ocaml-multicore/archive/parallel_minor_gc.tar.gz",
   "configure" : "-q",
@@ -86,7 +88,8 @@ The various options are described below:
   specific flags to the `configure` script.
 
 - `runparams` is OPTIONAL, and its values are passed to OCAMLRUNPARAM
-  when building the compiler.
+  when building the compiler. _Notice this variable is not used for
+  the running of benchmarks, just the build of the compiler_
 
 ## Execution
 
@@ -115,29 +118,70 @@ location from sandboxing.
 
 You can execute both serial and parallel benchmarks using the
 `run_all_serial.sh` and `run_all_parallel.sh` scripts.
-
 Ensure that the respective .json configuration files have the
 appropriate settings.
 
-The run_all_parallel.sh script uses chrt and the user executing the
-script requires sudo with nopasswd permission, which is quite useful
-with periodic nightly builds. Using the `sudo visudo` command on
-Ubuntu, for example, you can add the following entry to the
-`/etc/sudoers` file to allow a user running the script to execute any
-command:
+If using `RUN_BENCH_TARGET=run_orunchrt` then the benchmarks will
+run using `chrt -r 1`.
 
+**IMPORTANT:** `chrt -r 1` is **necessary** when using
+`taskset` to run parallel programs. Otherwise, all the domains will be
+scheduled on the same core and you will see slowdown with increasing
+number of domains.
+
+You may need to give the user permissions to execute `chrt`, one way
+to do this can be:
 ```
-username   ALL=(ALL:ALL) NOPASSWD: ALL
+sudo setcap cap_sys_nice=ep /usr/bin/chrt
 ```
 
-### Running benchmarks
-
-We can obtain throughput and latency results for the benchmarks.
+### Configuring the benchmark runs
 
 A config file can be specified with the environment variable `RUN_CONFIG_JSON`,
 and the default value is `run_config.json`. This file lists the executable to
 run and the wrapper which will be used to collect data (e.g. orun or perf). You
 can edit this file to change benchmark parameters or wrappers.
+
+The `environment` within which a wrapper runs allows the user to configure
+variables such as `OCAMLRUNPARAM` or `LD_PRELOAD`. For example this wrapper
+configuration:
+```json
+{
+  "name": "orun-2M",
+  "environment": "OCAMLRUNPARAM='s=2M'",
+  "command": "orun -o %{output} -- taskset --cpu-list 5 %{command}"
+}
+```
+would allow
+```sh
+$ RUN_BENCH_TARGET=run_orun-2M make ocaml-versions/4.12.0+stock.bench
+```
+to run the benchmarks on 4.12.0+stock with a 2M minor heap setting taskset
+onto CPU 5.
+
+The benchmarks also have associated tags which classify the benchmarks. The
+current tags are:
+
+* `macro_bench` - A macro benchmark.
+* `run_in_ci` - This benchmark is run in the CI.
+* `lt_1s` - running time is less than 1s on the `turing` machine.
+* `1s_10s` - running time is between 1s and 10s on the `turning` machine.
+* `10s_100s` - running time is between 10s and 100s on the `turing` machine.
+* `gt_100s` - running time is greater than 100s on the `turing` machine.
+
+The benchmarking machine `turing` is an Intel Xeon Gold 5120 CPU with 64GB of
+RAM housed at IITM.
+
+The `run_config.json` file may be filtered based on the tag. For example,
+
+```bash
+$ TAG='"macro_bench"' make run_config_filtered.json
+```
+
+filters the `run_config.json` file to only contain the benchmarks tagged as
+`macro_bench`.
+
+### Running benchmarks
 
 The build bench target determines the type of benchmark being built. It can be
 specified with the environment variable `BUILD_BENCH_TARGET`, and the default
@@ -145,10 +189,11 @@ value is `buildbench` which runs the serial benchmarks. For executing the
 parallel benchmarks use `multibench_parallel`. You can also setup a custom
 bench and add only the benchmarks you care about.
 
-For obtaining latency results, we can adjust the environment variable
-`RUN_BENCH_TARGET`. The scripts for latencies are present in the `pausetimes/`
-directory. The `pausetimes_trunk` Bash script obtains the latencies for stock
-OCaml and the `pausetimes_multicore` Bash script for Multicore OCaml.
+We can obtain throughput and latency results for the benchmarks. For obtaining
+latency results, we can adjust the environment variable `RUN_BENCH_TARGET`.
+The scripts for latencies are present in the `pausetimes/` directory. The
+`pausetimes_trunk` Bash script obtains the latencies for stock OCaml and the
+`pausetimes_multicore` Bash script for Multicore OCaml.
 
 ### Results
 
@@ -177,7 +222,7 @@ You can add new benchmarks as follows:
     already included in Sandmark, add its opam file to
     `dependencies/packages/<package-name>/<package-version>/opam`. If the
     package depends on other packages, repeat this step for all of those
-    packages. Add the package to `PACKAGES` variable in the Makefile.  
+    packages. Add the package to `PACKAGES` variable in the Makefile.
 
  - **Add benchmark files:**
     Find a relevant folder in `benchmarks/` and add your code to it. Feel free
@@ -263,19 +308,3 @@ sed. `sed` will default to a BSD sed on OS X. One way to make things
 work on OS X is to install GNU sed with homebrew and then update the
 `PATH` you run sandmark with to pick up the GNU version.
 
-## User configurable benchmark wrapper
-
-To run a macro benchmark with a custom range of processors/isolated CPUs/ a conditional string can be passed with `PARAMWRAPPER`.
-
-For example :
-```bash
-$ make multicore_parallel_run_config_macro.json PARAMWRAPPER="if params < 16 then paramwrapper = 2-15 else paramwrapper = 2-15,16-21"
-```
-In the above example strings : `16`, `2-15`, `2-15,16-21` are used to construct a json file containing a `paramwrapper` record with the value : `taskset --cpu-list 2-15 chrt -r 1` or `taskset --cpu-list 2-15,16-21 chrt -r 1`. The `paramwrapper` value switches to one or the other depending on the value `params` is being compared to in this case `16`.
-
-The command above generates a new `.json` file. In this example it is `run_config_macro.json`.
-
-If no optional string is provided it defaults to
-```bash
-PARAMWRAPPER="if params < 16 then paramwrapper = 2-15 else paramwrapper = 2-15,16-27"
-```

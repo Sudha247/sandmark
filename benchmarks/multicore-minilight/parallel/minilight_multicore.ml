@@ -16,8 +16,7 @@
  * Supply a model file pathname as the command-line argument. Or -? for help.
  *)
 
-
-
+module T = Domainslib.Task
 
 (* user messages ------------------------------------------------------------ *)
 let title     = "MiniLight 1.5.2 OCaml"
@@ -117,12 +116,13 @@ try
 
       (* create top-level rendering objects with model file, in this order
          (image is mutable) *)
+      let pool = T.setup_pool ~num_additional_domains:(num_domains - 1) in
       let image  = new Image.obj  modelFile in
-      let camera = new Camera.obj modelFile num_domains in
+      let camera = new Camera.obj modelFile pool in
       let scene  = new Scene.obj  modelFile camera#eyePoint in
 
       (* make deterministic *)
-      let random = Random.State.make [|1|] in
+      (* let random = Random.State.make [|1|] in *)
       (*let random = Random.State.make_self_init in*)
 
       (* (must now be imperative so relevant data can be caught with ctrl-c) *)
@@ -133,7 +133,7 @@ try
          while frameNo := !frameNo + 1 ; !frameNo <= iterations do
 
             (* render a frame *)
-            let _ = camera#frame scene image random in
+            let _ = camera#frame scene image in
 
             (* save image every three minutes, and at start and end *)
             if (savePeriod < ((Sys.time ()) -. !lastTime)) ||
@@ -150,6 +150,7 @@ try
 
          done ;
 
+         T.teardown_pool pool;
          print_string "\nfinished\n"
 
       with

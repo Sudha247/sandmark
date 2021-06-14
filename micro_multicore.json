@@ -5,6 +5,10 @@
       "command": "orun -o %{output} -- %{command}"
     },
     {
+      "name": "orunchrt",
+      "command": "orun -o %{output} -- chrt -r 1 %{paramwrapper} %{command}"
+    },
+    {
       "name": "perfstat",
       "command": "perf stat -o %{output} -- %{command}"
     },
@@ -21,9 +25,16 @@
     {
       "executable": "benchmarks/simple-tests/finalise.exe",
       "name": "finalise",
-      "tags": [],
+      "tags": ["lt_1s", "sequential"],
       "runs": [
-        { "params": "10" },
+        { "params": "10" }
+    ]
+  },
+  {
+      "executable": "benchmarks/simple-tests/finalise.exe",
+      "name": "finalise",
+      "tags": ["1s_10s", "sequential"],
+      "runs": [
         { "params": "20" },
         { "params": "30" },
         { "params": "40" },
@@ -36,37 +47,33 @@
       ]
     },
 
-    {
-      "executable": "benchmarks/simple-tests/weak_htbl.exe",
-      "name": "weak_htbl",
-      "tags": [],
-      "runs": [
-        { "params": "100000" },
-        { "params": "200000" },
-        { "params": "300000" },
-        { "params": "400000" },
-        { "params": "500000" },
-        { "params": "600000" },
-        { "params": "700000" },
-        { "params": "800000" },
-        { "params": "900000" },
-        { "params": "1000000" }
-      ]
-    },
-
    {
       "executable": "benchmarks/simple-tests/lazy_primes.exe",
       "name": "lazy_primes",
-      "tags": [],
+      "tags": ["lt_1s", "sequential"],
       "runs": [
         { "params": "1000" },
         { "params": "2000" },
-        { "params": "3000" },
+        { "params": "3000" }
+    ]
+  },
+     {
+      "executable": "benchmarks/simple-tests/lazy_primes.exe",
+      "name": "lazy_primes",
+      "tags": ["1s_10s", "sequential"],
+      "runs": [
         { "params": "4000" },
         { "params": "5000" },
         { "params": "6000" },
         { "params": "7000" },
-        { "params": "8000" },
+        { "params": "8000" }
+    ]
+  },
+     {
+      "executable": "benchmarks/simple-tests/lazy_primes.exe",
+      "name": "lazy_primes",
+      "tags": ["10s_100s", "sequential"],
+      "runs": [
         { "params": "9000" },
         { "params": "10000" }
       ]
@@ -75,21 +82,66 @@
     {
       "executable": "benchmarks/simple-tests/weakretain.exe",
       "name": "weakretain",
-      "tags": [],
+      "tags": ["1s_10s", "sequential"],
       "runs": [
-        { "params": "25 1000" },
-        { "params": "25 100000" },
         { "params": "25 10000000" },
-        { "params": "50 1000" },
-        { "params": "50 100000" },
         { "params": "50 10000000" },
-        { "params": "75 1000" },
         { "params": "75 100000" },
         { "params": "75 10000000" },
-        { "params": "100 1000" },
         { "params": "100 100000" },
         { "params": "100 10000000" }
       ]
-    }
+    },
+    {
+      "executable": "benchmarks/simple-tests/weakretain.exe",
+      "name": "weakretain",
+      "tags": ["lt_1s", "sequential"],
+      "runs": [
+      	{ "params": "50 1000" },
+        { "params": "50 100000" },
+        { "params": "25 1000" },
+        { "params": "25 100000" },
+        { "params": "100 1000" },
+        { "params": "75 1000" }
+      ]
+  },
+  {
+    "executable": "benchmarks/multicore-gcroots/globroots_seq.exe",
+    "name": "globroots_seq",
+    "tags": ["lt_1s", "parallel"],
+    "runs": [
+      { "params": "10000" }
+    ]
+  },
+  {
+    "executable": "benchmarks/multicore-gcroots/globroots_sp.exe",
+    "name": "globroots_sp",
+    "tags": ["parallel"],
+    "runs": [
+      { "params": "1 10000", "paramwrapper": "taskset --cpu-list 2-13"},
+      { "params": "2 10000", "paramwrapper": "taskset --cpu-list 2-13" },
+      { "params": "4 10000", "paramwrapper": "taskset --cpu-list 2-13" },
+      { "params": "8 10000", "paramwrapper": "taskset --cpu-list 2-13" },
+      { "params": "12 10000", "paramwrapper": "taskset --cpu-list 2-13" },
+      { "params": "16 10000", "paramwrapper": "taskset --cpu-list 2-13,16-27" },
+      { "params": "20 10000", "paramwrapper": "taskset --cpu-list 2-13,16-27" },
+      { "params": "24 10000", "paramwrapper": "taskset --cpu-list 2-13,16-27" }
+    ]
+  },
+  {
+    "executable": "benchmarks/multicore-gcroots/globroots_mp.exe",
+    "name": "globroots_mp",
+    "tags": ["parallel"],
+    "runs": [
+      { "params": "1 10000", "paramwrapper": "taskset --cpu-list 2-13"},
+      { "params": "2 10000", "paramwrapper": "taskset --cpu-list 2-13" },
+      { "params": "4 10000", "paramwrapper": "taskset --cpu-list 2-13" },
+      { "params": "8 10000", "paramwrapper": "taskset --cpu-list 2-13" },
+      { "params": "12 10000", "paramwrapper": "taskset --cpu-list 2-13" },
+      { "params": "16 10000", "paramwrapper": "taskset --cpu-list 2-13,16-27" },
+      { "params": "20 10000", "paramwrapper": "taskset --cpu-list 2-13,16-27" },
+      { "params": "24 10000", "paramwrapper": "taskset --cpu-list 2-13,16-27" }
+    ]
+  }
   ]
 }
