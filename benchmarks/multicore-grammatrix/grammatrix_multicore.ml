@@ -57,8 +57,8 @@ let rec create_work c start left =
     done
   end else begin
 (*     Printf.printf "%d %d\n" start (start + chunk_size - 1); *)
-    C.send c (Work (start, start + chunk_size - 1));
-    create_work c (start + chunk_size) (left - chunk_size)
+    C.send c (Work (left - chunk_size, left - 1));
+    create_work c start (left - chunk_size)
   end
 
 let rec worker samples res c =
